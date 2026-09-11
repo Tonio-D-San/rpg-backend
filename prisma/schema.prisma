@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserDisabledReason {
+  ADMIN
+  INACTIVITY
+}
+
+model User {
+  keycloakSub String @id @map("keycloak_sub") @db.VarChar(255)
+
+  email       String @unique @db.VarChar(320)
+  displayName String @map("display_name") @db.VarChar(100)
+
+  enabled Boolean @default(true)
+
+  lastLoginAt    DateTime?           @map("last_login_at") @db.Timestamptz(6)
+  disabledAt     DateTime?           @map("disabled_at") @db.Timestamptz(6)
+  disabledReason UserDisabledReason? @map("disabled_reason")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  groups UserGroup[]
+
+  @@index([enabled, lastLoginAt])
+  @@index([enabled, createdAt])
+  @@map("users")
+}
+
+model Group {
+  keycloakGroupId String @id @map("keycloak_group_id") @db.VarChar(255)
+
+  code String @unique @db.VarChar(100)
+  name String @db.VarChar(255)
+  path String @unique @db.VarChar(512)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  users UserGroup[]
+
+  @@map("groups")
+}
+
+model UserGroup {
+  userSub String @map("user_sub") @db.VarChar(255)
+  groupId String @map("group_id") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  syncedAt  DateTime @default(now()) @map("synced_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userSub], references: [keycloakSub], onDelete: Cascade, onUpdate: Cascade)
+
+  group Group @relation(fields: [groupId], references: [keycloakGroupId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([userSub, groupId])
+  @@index([groupId])
+  @@map("user_groups")
+}
