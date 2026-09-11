@@ -1,0 +1,67 @@
+import {Injectable} from '@nestjs/common';
+import {PrismaService} from '../../database/prisma.service.js';
+import {UserMapper} from '../mapper/user.mapper.js';
+import {CreateUserModel} from '../model/create-user.model.js';
+import {UserDisabledReason} from '../model/user-disabled-reason.enum.js';
+import {UserModel} from '../model/user.model.js';
+import {UserRepository} from './user.repository.js';
+
+@Injectable()
+export class PrismaUserRepository extends UserRepository {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mapper: UserMapper,
+  ) {
+    super();
+  }
+
+  async create(user: CreateUserModel): Promise<UserModel> {
+    return this.mapper.toModel(await this.prisma.user.create({
+      data: {
+        keycloakSub: user.keycloakSub,
+        email: user.email,
+        displayName: user.displayName,
+      },
+    }));
+  }
+
+  async findByKeycloakSub(keycloakSub: string): Promise<UserModel | null> {
+    const user = await this.prisma.user.findUnique({
+      where: {keycloakSub},
+    });
+    return user ? this.mapper.toModel(user) : null;
+  }
+
+  async findByEmail(email: string): Promise<UserModel | null> {
+    const user = await this.prisma.user.findUnique({
+      where: {email},
+    });
+    return user ? this.mapper.toModel(user) : null;
+  }
+
+  async existsByKeycloakSub(keycloakSub: string): Promise<boolean> {
+    return await this.prisma.user.count({where: {keycloakSub}}) > 0;
+  }
+
+  async existsByEmail(email: string): Promise<boolean> {
+    return await this.prisma.user.count({where: {email}}) > 0;
+  }
+
+  async disable(keycloakSub: string, reason: UserDisabledReason): Promise<UserModel> {
+    return this.mapper.toModel(await this.prisma.user.update({
+      where: {keycloakSub},
+      data: {
+        enabled: false,
+        disabledAt: new Date(),
+        disabledReason: this.mapper.toPrismaDisabledReason(reason)
+      },
+    }));
+  }
+
+  async updateLastLogin(keycloakSub: string, loginAt: Date): Promise<UserModel> {
+    return this.mapper.toModel(await this.prisma.user.update({
+      where: {keycloakSub},
+      data: {lastLoginAt: loginAt}
+    }));
+  }
+}
