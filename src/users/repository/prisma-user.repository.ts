@@ -15,14 +15,25 @@ export class PrismaUserRepository extends UserRepository {
     super();
   }
 
-  async create(user: CreateUserModel): Promise<UserModel> {
-    return this.mapper.toModel(await this.prisma.user.create({
-      data: {
-        keycloakSub: user.keycloakSub,
-        email: user.email,
-        displayName: user.displayName,
+  async create(user: CreateUserModel, groupId: string): Promise<UserModel> {
+    return this.prisma.$transaction(
+      async (transaction) => {
+        const created = await transaction.user.create({
+          data: {
+            keycloakSub: user.keycloakSub,
+            email: user.email,
+            displayName: user.displayName,
+          },
+        });
+        await transaction.userGroup.create({
+          data: {
+            userSub: created.keycloakSub,
+            groupId,
+          },
+        });
+        return this.mapper.toModel(created);
       },
-    }));
+    );
   }
 
   async findByKeycloakSub(keycloakSub: string): Promise<UserModel | null> {

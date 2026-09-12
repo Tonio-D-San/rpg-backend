@@ -4,14 +4,13 @@ import {AppController} from './app.controller.js';
 import {AppService} from './app.service.js';
 import {UsersModule} from "./users/users.module.js";
 import {GroupsModule} from "./groups/groups.module.js";
-import {KeycloakModule} from "./keycloak/keycloak.module.js";
+import {getEnvironmentFile} from "./config/environment.js";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({isGlobal: true, expandVariables: true}),
+    ConfigModule.forRoot({isGlobal: true, expandVariables: true, envFilePath: getEnvironmentFile()}),
     UsersModule,
-    GroupsModule,
-    KeycloakModule
+    GroupsModule
   ],
   controllers: [AppController],
   providers: [AppService],

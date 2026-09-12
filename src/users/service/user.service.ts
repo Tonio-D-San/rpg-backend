@@ -10,14 +10,14 @@ export class UserService {
     private readonly repository: UserRepository,
   ) {}
 
-  async createUser(input: CreateUserModel): Promise<UserModel> {
+  async createUser(input: CreateUserModel, groupId: string): Promise<UserModel> {
     if (await this.repository.existsByKeycloakSub(input.keycloakSub)) {
       throw new ConflictException(`User with Keycloak subject '${input.keycloakSub}' already exists`);
     }
     if (await this.repository.existsByEmail(input.email)) {
       throw new ConflictException(`User with email '${input.email}' already exists`);
     }
-    return this.repository.create(input);
+    return this.repository.create(input, groupId);
   }
 
   async findByKeycloakSub(keycloakSub: string): Promise<UserModel | null> {

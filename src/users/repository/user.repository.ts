@@ -3,7 +3,7 @@ import { UserDisabledReason } from '../model/user-disabled-reason.enum.js';
 import { UserModel } from '../model/user.model.js';
 
 export abstract class UserRepository {
-  abstract create(user: CreateUserModel): Promise<UserModel>;
+  abstract create(user: CreateUserModel, groupId: string): Promise<UserModel>;
   abstract findByKeycloakSub(keycloakSub: string): Promise<UserModel | null>;
   abstract findByEmail(email: string): Promise<UserModel | null>;
   abstract existsByKeycloakSub(keycloakSub: string): Promise<boolean>;
