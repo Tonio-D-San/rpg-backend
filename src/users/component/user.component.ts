@@ -9,6 +9,7 @@ import {UserModel} from '../model/user.model.js';
 import {UserService} from '../service/user.service.js';
 import {KeycloakCallException} from "../../common/exception/keycloak-call.exception.js";
 import {KeycloakUserModel} from "../../keycloak/model/keycloak-user.model.js";
+import {PaginatedResultModel} from "../../common/model/paginated-result.model.js";
 
 @Injectable()
 export class UserComponent {
@@ -39,8 +40,8 @@ export class UserComponent {
     return this.userService.getByKeycloakSub(keycloakSub);
   }
 
-  async findAll(): Promise<UserModel[]> {
-    return this.userService.findAll();
+  async findAll(page: number, size: number): Promise<PaginatedResultModel<UserModel>> {
+    return this.userService.findAll(page, size);
   }
 
   private async compensateKeycloakUserCreation(keycloakUserId: string): Promise<void> {

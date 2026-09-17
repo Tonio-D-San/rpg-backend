@@ -11,21 +11,13 @@ export class KeycloakAdminClient {
   private readonly realm: string;
   private readonly clientId: string;
   private readonly clientSecret: string;
-
   private accessToken: string | null = null;
   private accessTokenExpiresAt = 0;
 
   constructor(
     private readonly configService: ConfigService,
   ) {
-    console.log({
-      baseUrl: this.baseUrl,
-      realm: this.realm,
-      clientId: this.clientId,
-    });
-    this.baseUrl = this.configService
-      .getOrThrow<string>('KC_BASE_URL')
-      .replace(/\/+$/, '');
+    this.baseUrl = this.configService.getOrThrow<string>('KC_BASE_URL').replace(/\/+$/, '');
     this.realm = this.configService.getOrThrow<string>('KC_REALM');
     this.clientId = this.configService.getOrThrow<string>('KC_SERVICE_CLIENT_ID');
     this.clientSecret = this.configService.getOrThrow<string>('KC_SERVICE_CLIENT_SECRET');
@@ -93,12 +85,13 @@ export class KeycloakAdminClient {
       `/admin/realms/${encodeURIComponent(this.realm)}/users/${encodeURIComponent(userId)}/groups`,
       {method: 'GET'}
     );
-
     return (await response.json()) as KeycloakGroupRepresentationModel[];
   }
 
   private async getAccessToken(): Promise<string> {
-    if (this.hasValidAccessToken()) {return this.accessToken!}
+    if (this.hasValidAccessToken()) {
+      return this.accessToken!
+    }
     const body = new URLSearchParams();
     body.set('grant_type', 'client_credentials');
     body.set('client_id', this.clientId);
@@ -111,7 +104,6 @@ export class KeycloakAdminClient {
         body,
       },
     );
-
     if (!response.ok) {
       throw new KeycloakCallException(
         'Unable to obtain Keycloak service account token',
@@ -133,10 +125,7 @@ export class KeycloakAdminClient {
   private async doAuthenticatedRequest(path: string, init: RequestInit): Promise<Response> {
     const headers = new Headers(init.headers);
     headers.set('Accept', 'application/json');
-    headers.set(
-      'Authorization',
-      `Bearer ${await this.getAccessToken()}`,
-    );
+    headers.set('Authorization', `Bearer ${await this.getAccessToken()}`);
     const response = await fetch(
       `${this.baseUrl}${path}`,
       {
@@ -145,14 +134,13 @@ export class KeycloakAdminClient {
       },
     );
     if (!response.ok) {
-      const responseBody = await response.text();
       if (response.status === 401) {
         this.invalidateAccessToken();
       }
       throw new KeycloakCallException(
         `Keycloak request failed: ${init.method ?? 'GET'} ${path}`,
         response.status,
-        responseBody,
+        await response.text(),
       );
     }
     return response;

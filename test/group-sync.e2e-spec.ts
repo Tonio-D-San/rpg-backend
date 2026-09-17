@@ -6,14 +6,6 @@ import {GroupCode} from '../src/groups/model/group-code.js';
 import {GroupsModule} from '../src/groups/groups.module.js';
 import {GroupService} from '../src/groups/service/group.service.js';
 
-console.log({
-  cwd: process.cwd(),
-  baseUrl: process.env.KC_BASE_URL,
-  realm: process.env.KC_REALM,
-  clientId: process.env.KC_SERVICE_CLIENT_ID,
-  databaseUrl: process.env.DATABASE_URL,
-});
-
 describe('Group synchronization', () => {
   it('should synchronize platform groups from Keycloak', async () => {
     const moduleRef = await Test.createTestingModule({

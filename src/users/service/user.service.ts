@@ -3,6 +3,7 @@ import { CreateUserModel } from '../model/create-user.model.js';
 import { UserDisabledReason } from '../model/user-disabled-reason.enum.js';
 import { UserModel } from '../model/user.model.js';
 import { UserRepository } from '../repository/user.repository.js';
+import {PaginatedResultModel} from "../../common/model/paginated-result.model.js";
 
 @Injectable()
 export class UserService {
@@ -20,8 +21,8 @@ export class UserService {
     return this.repository.create(input, groupId);
   }
 
-  async findAll(): Promise<UserModel[]> {
-    return this.repository.findAll();
+  async findAll(page: number, size: number): Promise<PaginatedResultModel<UserModel>> {
+    return this.repository.findAll((page - 1) * size, size);
   }
 
   async findByKeycloakSub(keycloakSub: string): Promise<UserModel | null> {

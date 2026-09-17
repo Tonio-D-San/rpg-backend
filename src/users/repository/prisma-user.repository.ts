@@ -5,6 +5,7 @@ import {CreateUserModel} from '../model/create-user.model.js';
 import {UserDisabledReason} from '../model/user-disabled-reason.enum.js';
 import {UserModel} from '../model/user.model.js';
 import {UserRepository} from './user.repository.js';
+import {PaginatedResultModel} from "../../common/model/paginated-result.model.js";
 
 @Injectable()
 export class PrismaUserRepository extends UserRepository {
@@ -36,9 +37,22 @@ export class PrismaUserRepository extends UserRepository {
     );
   }
 
-  async findAll(): Promise<UserModel[]> {
-    const users = await this.prisma.user.findMany();
-    return users.map((user) => this.mapper.toModel(user));
+  async findAll(offset: number, limit: number): Promise<PaginatedResultModel<UserModel>> {
+    const [users, totalItems] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: [
+          {createdAt: 'desc'},
+          {keycloakSub: 'asc'},
+        ],
+      }),
+      this.prisma.user.count(),
+    ]);
+    return new PaginatedResultModel(
+      users.map((user) => this.mapper.toModel(user)),
+      totalItems,
+    );
   }
 
   async findByKeycloakSub(keycloakSub: string): Promise<UserModel | null> {
