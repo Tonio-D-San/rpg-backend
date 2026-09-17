@@ -1,0 +1,23 @@
+import {
+  Body,
+  Controller,
+  Post,
+} from '@nestjs/common';
+import { UserComponent } from '../component/user.component.js';
+import { RegisterUserDto } from '../dto/register-user.dto.js';
+import { UserResponseDto } from '../dto/user-response.dto.js';
+import { RegisterUserModel } from '../model/register-user.model.js';
+
+@Controller('api/v1/users')
+export class UserController {
+  constructor(
+    private readonly userComponent: UserComponent,
+  ) {}
+
+  @Post('register')
+  async register(@Body() dto: RegisterUserDto): Promise<UserResponseDto> {
+    return UserResponseDto.fromModel(
+      await this.userComponent.registerUser(new RegisterUserModel(dto.email, dto.password, dto.displayName))
+    );
+  }
+}

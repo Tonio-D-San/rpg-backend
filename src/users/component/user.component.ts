@@ -1,4 +1,4 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {ConflictException, Injectable, Logger} from '@nestjs/common';
 import {GroupCode} from '../../groups/model/group-code.js';
 import {GroupService} from '../../groups/service/group.service.js';
 import {KeycloakComponent} from '../../keycloak/component/keycloak.component.js';
@@ -7,6 +7,8 @@ import {CreateUserModel} from '../model/create-user.model.js';
 import {RegisterUserModel} from '../model/register-user.model.js';
 import {UserModel} from '../model/user.model.js';
 import {UserService} from '../service/user.service.js';
+import {KeycloakCallException} from "../../common/exception/keycloak-call.exception.js";
+import {KeycloakUserModel} from "../../keycloak/model/keycloak-user.model.js";
 
 @Injectable()
 export class UserComponent {
@@ -20,7 +22,7 @@ export class UserComponent {
 
   async registerUser(input: RegisterUserModel): Promise<UserModel> {
     const platformUsersGroup = await this.groupService.getByCode(GroupCode.PLATFORM_USERS);
-    const keycloakUser = await this.keycloakComponent.createUser(new CreateKeycloakUserModel(input.email, input.password));
+    const keycloakUser = await this.createKeycloakUser(input);
     try {
       await this.keycloakComponent.addUserToGroup(keycloakUser.id, platformUsersGroup.keycloakGroupId);
       return await this.userService.createUser(
@@ -43,6 +45,19 @@ export class UserComponent {
           ? error.stack
           : undefined,
       );
+    }
+  }
+
+  private async createKeycloakUser(input: RegisterUserModel): Promise<KeycloakUserModel> {
+    try {
+      return await this.keycloakComponent.createUser(
+        new CreateKeycloakUserModel(input.email, input.password,),
+      );
+    } catch (error) {
+      if (error instanceof KeycloakCallException && error.status === 409) {
+        throw new ConflictException(`User with email '${input.email}' already exists`);
+      }
+      throw error;
     }
   }
 }
