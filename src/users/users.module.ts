@@ -8,12 +8,14 @@ import {KeycloakModule} from "../keycloak/keycloak.module.js";
 import {GroupsModule} from "../groups/groups.module.js";
 import {UserComponent} from "./component/user.component.js";
 import {UserController} from "./controller/user.controller.js";
+import {AuthModule} from "../auth/auth.module.js";
 
 @Module({
   imports: [
     DatabaseModule,
     GroupsModule,
     KeycloakModule,
+    AuthModule,
   ],
   controllers: [
     UserController

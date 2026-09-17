@@ -1,12 +1,17 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { UserComponent } from '../component/user.component.js';
 import { RegisterUserDto } from '../dto/register-user.dto.js';
 import { UserResponseDto } from '../dto/user-response.dto.js';
 import { RegisterUserModel } from '../model/register-user.model.js';
+import {CurrentUser} from "../../auth/decorator/current-user.decorator.js";
+import {JwtAuthGuard} from "../../auth/guard/jwt-auth.guard.js";
+import {AuthenticatedUserModel} from "../../auth/model/authenticated-user.model.js";
 
 @Controller('api/v1/users')
 export class UserController {
@@ -19,5 +24,11 @@ export class UserController {
     return UserResponseDto.fromModel(
       await this.userComponent.registerUser(new RegisterUserModel(dto.email, dto.password, dto.displayName))
     );
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async me(@CurrentUser() authenticatedUser: AuthenticatedUserModel): Promise<UserResponseDto> {
+    return UserResponseDto.fromModel(await this.userComponent.getCurrentUser(authenticatedUser.subject));
   }
 }

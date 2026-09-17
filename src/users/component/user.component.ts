@@ -35,6 +35,10 @@ export class UserComponent {
     }
   }
 
+  async getCurrentUser(keycloakSub: string): Promise<UserModel> {
+    return this.userService.getByKeycloakSub(keycloakSub);
+  }
+
   private async compensateKeycloakUserCreation(keycloakUserId: string): Promise<void> {
     try {
       await this.keycloakComponent.deleteUser(keycloakUserId);

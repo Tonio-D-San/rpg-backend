@@ -1,4 +1,4 @@
-import {ConflictException, Injectable} from '@nestjs/common';
+import {ConflictException, Injectable, NotFoundException} from '@nestjs/common';
 import { CreateUserModel } from '../model/create-user.model.js';
 import { UserDisabledReason } from '../model/user-disabled-reason.enum.js';
 import { UserModel } from '../model/user.model.js';
@@ -26,6 +26,14 @@ export class UserService {
 
   async findByEmail(email: string): Promise<UserModel | null> {
     return this.repository.findByEmail(email);
+  }
+
+  async getByKeycloakSub(keycloakSub: string): Promise<UserModel> {
+    const user = await this.findByKeycloakSub(keycloakSub);
+    if (!user) {
+      throw new NotFoundException(`User '${keycloakSub}' not found`);
+    }
+    return user;
   }
 
   async disableUser(keycloakSub: string, reason: UserDisabledReason): Promise<UserModel> {
