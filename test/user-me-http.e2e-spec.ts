@@ -23,6 +23,8 @@ import { AuthenticatedUserModel } from '../src/auth/model/authenticated-user.mod
 import { JwtVerifierService } from '../src/auth/service/jwt-verifier.service.js';
 import { configureApp } from '../src/bootstrap/configure-app.js';
 import { PrismaService } from '../src/database/prisma.service.js';
+import {PLATFORM_GROUPS} from "../src/groups/config/platform-groups.config.js";
+import {GroupCode} from "../src/groups/model/group-code.js";
 
 describe('GET /api/v1/users/me', () => {
   let app: INestApplication;
@@ -31,6 +33,17 @@ describe('GET /api/v1/users/me', () => {
   const jwtVerifierMock = {verify: vi.fn()};
   let keycloakSub: string;
   let email: string;
+  const platformUsersGroup =
+    PLATFORM_GROUPS.find(
+      (group) =>
+        group.code === GroupCode.PLATFORM_USERS,
+    );
+
+  if (!platformUsersGroup) {
+    throw new Error(
+      'PLATFORM_USERS group configuration not found',
+    );
+  }
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({imports: [AppModule]})
       .overrideProvider(JwtVerifierService)
@@ -99,6 +112,25 @@ describe('GET /api/v1/users/me', () => {
         displayName: 'E2E Current User',
         enabled: true,
       });
+    },
+  );
+
+  it(
+    'should return 403 when user does not belong to platform-users',
+    async () => {
+      jwtVerifierMock.verify.mockResolvedValue(
+        new AuthenticatedUserModel(
+          keycloakSub,
+          email,
+          [],
+        ),
+      );
+
+      await request(app.getHttpServer())
+        .get('/api/v1/users/me')
+        .set('Authorization', 'Bearer valid-token-without-group')
+        .expect(403);
+      expect(jwtVerifierMock.verify).toHaveBeenCalledWith('valid-token-without-group');
     },
   );
 });

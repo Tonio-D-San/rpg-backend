@@ -12,6 +12,9 @@ import { RegisterUserModel } from '../model/register-user.model.js';
 import {CurrentUser} from "../../auth/decorator/current-user.decorator.js";
 import {JwtAuthGuard} from "../../auth/guard/jwt-auth.guard.js";
 import {AuthenticatedUserModel} from "../../auth/model/authenticated-user.model.js";
+import {PlatformGroupGuard} from "../../auth/guard/platform-group.guard.js";
+import {RequireGroup} from "../../auth/decorator/require-group.decorator.js";
+import {GroupCode} from "../../groups/model/group-code.js";
 
 @Controller('api/v1/users')
 export class UserController {
@@ -27,7 +30,8 @@ export class UserController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PlatformGroupGuard)
+  @RequireGroup(GroupCode.PLATFORM_USERS)
   async me(@CurrentUser() authenticatedUser: AuthenticatedUserModel): Promise<UserResponseDto> {
     return UserResponseDto.fromModel(await this.userComponent.getCurrentUser(authenticatedUser.subject));
   }
