@@ -24,6 +24,14 @@ export class KeycloakComponent {
     await this.client.deleteUser(userId);
   }
 
+  async disableUser(userId: string): Promise<void> {
+    await this.client.setUserEnabled(userId, false);
+  }
+
+  async enableUser(userId: string): Promise<void> {
+    await this.client.setUserEnabled(userId, true);
+  }
+
   async getGroups(): Promise<KeycloakGroupModel[]> {
     return this.toGroupModels(await this.client.getGroups());
   }

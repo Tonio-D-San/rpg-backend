@@ -10,6 +10,7 @@ import {UserService} from '../service/user.service.js';
 import {KeycloakCallException} from "../../common/exception/keycloak-call.exception.js";
 import {KeycloakUserModel} from "../../keycloak/model/keycloak-user.model.js";
 import {PaginatedResultModel} from "../../common/model/paginated-result.model.js";
+import { UserDisabledReason } from '../model/user-disabled-reason.enum.js';
 
 @Injectable()
 export class UserComponent {
@@ -44,6 +45,17 @@ export class UserComponent {
     return this.userService.findAll(page, size);
   }
 
+  async disableUser(keycloakSub: string): Promise<UserModel> {
+    const user = await this.userService.getByKeycloakSub(keycloakSub);
+    await this.keycloakComponent.disableUser(user.keycloakSub);
+    try {
+      return await this.userService.disableUser(user.keycloakSub, UserDisabledReason.ADMIN);
+    } catch (error) {
+      await this.compensateKeycloakUserDisable(user.keycloakSub);
+      throw error;
+    }
+  }
+
   private async compensateKeycloakUserCreation(keycloakUserId: string): Promise<void> {
     try {
       await this.keycloakComponent.deleteUser(keycloakUserId);
@@ -53,6 +65,17 @@ export class UserComponent {
         error instanceof Error
           ? error.stack
           : undefined,
+      );
+    }
+  }
+
+  private async compensateKeycloakUserDisable(keycloakUserId: string): Promise<void> {
+    try {
+      await this.keycloakComponent.enableUser(keycloakUserId);
+    } catch (error) {
+      this.logger.error(
+        `Unable to compensate Keycloak user disable for '${keycloakUserId}'`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }

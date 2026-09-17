@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, Query, UseGuards,} from '@nestjs/common';
+import {Body, Controller, Get, Post, Query, UseGuards, Param, Patch,} from '@nestjs/common';
 import {UserComponent} from '../component/user.component.js';
 import {RegisterUserDto} from '../dto/register-user.dto.js';
 import {UserResponseDto} from '../dto/user-response.dto.js';
@@ -44,5 +44,12 @@ export class UserController {
   @RequireGroup(GroupCode.PLATFORM_USERS)
   async me(@CurrentUser() authenticatedUser: AuthenticatedUserModel): Promise<UserResponseDto> {
     return UserResponseDto.fromModel(await this.userComponent.getCurrentUser(authenticatedUser.subject));
+  }
+
+  @Patch(':keycloakSub/disable')
+  @UseGuards(JwtAuthGuard, PlatformGroupGuard)
+  @RequireGroup(GroupCode.PLATFORM_ADMINS)
+  async disableUser(@Param('keycloakSub') keycloakSub: string): Promise<UserResponseDto> {
+    return UserResponseDto.fromModel(await this.userComponent.disableUser(keycloakSub));
   }
 }

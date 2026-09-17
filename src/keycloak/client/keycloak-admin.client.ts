@@ -73,6 +73,21 @@ export class KeycloakAdminClient {
     );
   }
 
+  async setUserEnabled(userId: string, enabled: boolean): Promise<void> {
+    await this.doAuthenticatedRequest(
+      `/admin/realms/${encodeURIComponent(this.realm)}/users/${encodeURIComponent(userId)}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          enabled,
+        }),
+      },
+    );
+  }
+
   async getGroups(): Promise<KeycloakGroupRepresentationModel[]> {
     const response = await this.doAuthenticatedRequest(
       `/admin/realms/${encodeURIComponent(this.realm)}/groups`, {method: 'GET'},

@@ -27,36 +27,28 @@ describe('GET /api/v1/users', () => {
   let app: INestApplication;
   let moduleRef: TestingModule;
   let prisma: PrismaService;
-
   const jwtVerifierMock = {
     verify: vi.fn(),
   };
-
   const platformUsersGroup =
     PLATFORM_GROUPS.find(
       (group) =>
         group.code ===
         GroupCode.PLATFORM_USERS,
     );
-
   const platformAdminsGroup =
     PLATFORM_GROUPS.find(
       (group) =>
         group.code ===
         GroupCode.PLATFORM_ADMINS,
     );
-
   if (!platformUsersGroup) {
-    throw new Error(
-      'PLATFORM_USERS group configuration not found',
-    );
+    throw new Error('PLATFORM_USERS group configuration not found');
   }
-
   if (!platformAdminsGroup) {
-    throw new Error(
-      'PLATFORM_ADMINS group configuration not found',
-    );
+    throw new Error('PLATFORM_ADMINS group configuration not found');
   }
+  const platformAdminsGroupPath = platformAdminsGroup.path;
 
   beforeAll(async () => {
     moduleRef = await Test
@@ -80,7 +72,7 @@ describe('GET /api/v1/users', () => {
       new AuthenticatedUserModel(
         randomUUID(),
         'admin@waystone.test',
-        [platformAdminsGroup.path],
+        [platformAdminsGroupPath],
       ),
     );
   }
