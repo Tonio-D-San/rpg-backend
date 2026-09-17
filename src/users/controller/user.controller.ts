@@ -29,6 +29,14 @@ export class UserController {
     );
   }
 
+  @Get()
+  @UseGuards(JwtAuthGuard, PlatformGroupGuard)
+  @RequireGroup(GroupCode.PLATFORM_ADMINS)
+  async findAll(): Promise<UserResponseDto[]> {
+    const users = await this.userComponent.findAll();
+    return users.map((user) => UserResponseDto.fromModel(user));
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard, PlatformGroupGuard)
   @RequireGroup(GroupCode.PLATFORM_USERS)

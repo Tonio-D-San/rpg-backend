@@ -39,6 +39,10 @@ export class UserComponent {
     return this.userService.getByKeycloakSub(keycloakSub);
   }
 
+  async findAll(): Promise<UserModel[]> {
+    return this.userService.findAll();
+  }
+
   private async compensateKeycloakUserCreation(keycloakUserId: string): Promise<void> {
     try {
       await this.keycloakComponent.deleteUser(keycloakUserId);

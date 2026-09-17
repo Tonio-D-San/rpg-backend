@@ -20,6 +20,10 @@ export class UserService {
     return this.repository.create(input, groupId);
   }
 
+  async findAll(): Promise<UserModel[]> {
+    return this.repository.findAll();
+  }
+
   async findByKeycloakSub(keycloakSub: string): Promise<UserModel | null> {
     return this.repository.findByKeycloakSub(keycloakSub);
   }

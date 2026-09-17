@@ -36,6 +36,11 @@ export class PrismaUserRepository extends UserRepository {
     );
   }
 
+  async findAll(): Promise<UserModel[]> {
+    const users = await this.prisma.user.findMany();
+    return users.map((user) => this.mapper.toModel(user));
+  }
+
   async findByKeycloakSub(keycloakSub: string): Promise<UserModel | null> {
     const user = await this.prisma.user.findUnique({
       where: {keycloakSub},
